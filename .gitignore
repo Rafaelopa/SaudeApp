@@ -1,0 +1,77 @@
+# Ignore generated files and directories specific to Flutter and Dart.
+
+# Dart/Pub related
+.dart_tool/
+.packages
+build/
+
+# Flutter related
+.flutter-plugins
+.flutter-plugins-dependencies
+.metadata
+
+# IDE specific files
+.idea/
+*.iml
+*.vscode/
+
+# Build artifacts
+appbundle/
+
+# Android specific
+android/app/build/
+android/build/
+android/.gradle/
+android/gradle/
+android/gradlew
+android/gradlew.bat
+android/local.properties
+android/key.properties
+
+# iOS specific
+ios/build/
+ios/Pods/
+ios/Runner.xcworkspace/xcshareddata/xcschemebuilder.plist
+ios/Runner.xcworkspace/xcuserdata/
+ios/.symlinks/
+ios/Flutter/Flutter.podspec
+ios/Flutter/ephemeral/
+ios/Flutter/app.flx
+ios/Flutter/App.framework/
+ios/Flutter/engine.version
+
+# macOS specific
+macos/build/
+macos/Pods/
+macos/Runner.xcworkspace/xcshareddata/xcschemebuilder.plist
+macos/Runner.xcworkspace/xcuserdata/
+macos/.symlinks/
+macos/Flutter/Flutter.podspec
+macos/Flutter/ephemeral/
+
+# Web specific
+.dart_tool/build/
+
+# Windows specific
+windows/build/
+windows/flutter/ephemeral/
+windows/runner/Debug/
+windows/runner/Release/
+windows/runner/Profile/
+
+# Linux specific
+linux/build/
+linux/flutter/ephemeral/
+
+# Test related
+coverage/
+
+# VS Code specific
+.history
+
+# Log files
+*.log
+
+# Flutter tool files
+.flutter-devtools
+
