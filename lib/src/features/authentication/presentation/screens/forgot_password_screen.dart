@@ -1,28 +1,27 @@
-// Presentation layer - Login Screen
+// Presentation layer - Forgot Password Screen
 
 import "package:flutter/material.dart";
 import "package:flutter_riverpod/flutter_riverpod.dart";
-import "package:saude_app/src/features/authentication/presentation/screens/registration_screen.dart";
 import "package:saude_app/src/features/authentication/presentation/widgets/auth_gate.dart"; // For authServiceProvider
-import "package:saude_app/src/features/authentication/presentation/screens/forgot_password_screen.dart"; // Import ForgotPasswordScreen
 
-class LoginScreen extends ConsumerStatefulWidget {
-  const LoginScreen({super.key});
+class ForgotPasswordScreen extends ConsumerStatefulWidget {
+  const ForgotPasswordScreen({super.key});
 
   @override
-  ConsumerState<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
 }
 
-class _LoginScreenState extends ConsumerState<LoginScreen> {
+class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
   bool _isLoading = false;
-  String? _errorMessage;
+  String? _message;
+  bool _isError = false;
 
-  Future<void> _login() async {
+  Future<void> _sendResetEmail() async {
     setState(() {
-      _errorMessage = null; // Clear previous error messages
+      _message = null;
+      _isError = false;
     });
     if (_formKey.currentState!.validate()) {
       setState(() {
@@ -30,15 +29,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       });
       try {
         final authService = ref.read(authServiceProvider);
-        await authService.signInWithEmailAndPassword(
-          _emailController.text.trim(),
-          _passwordController.text.trim(),
-        );
-        // Navigation will be handled by AuthGate if successful
+        await authService.sendPasswordResetEmail(_emailController.text.trim());
+        if (mounted) {
+          setState(() {
+            _message = "Email de redefinição de senha enviado com sucesso para ${_emailController.text.trim()}. Verifique sua caixa de entrada.";
+            _isError = false;
+          });
+        }
       } catch (e) {
         if (mounted) {
           setState(() {
-            _errorMessage = "Falha no login: ${e.toString().replaceFirst("Exception: ", "")}";
+            _message = "Falha ao enviar email: ${e.toString().replaceFirst("Exception: ", "")}";
+            _isError = true;
           });
         }
       }
@@ -53,14 +55,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   void dispose() {
     _emailController.dispose();
-    _passwordController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Login - Saúde App")),
+      appBar: AppBar(title: const Text("Recuperar Senha")),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
@@ -71,8 +72,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
                 Text(
-                  "Bem-vindo(a) de volta!",
+                  "Redefina sua senha",
                   style: Theme.of(context).textTheme.headlineSmall,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  "Insira seu email abaixo para receber um link de redefinição de senha.",
+                  style: Theme.of(context).textTheme.bodyMedium,
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 24),
@@ -91,28 +98,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     return null;
                   },
                 ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _passwordController,
-                  decoration: const InputDecoration(
-                    labelText: "Senha",
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.lock),
-                  ),
-                  obscureText: true,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return "Por favor, insira sua senha.";
-                    }
-                    return null;
-                  },
-                ),
-                if (_errorMessage != null)
+                if (_message != null)
                   Padding(
-                    padding: const EdgeInsets.only(top: 8.0),
+                    padding: const EdgeInsets.only(top: 16.0),
                     child: Text(
-                      _errorMessage!,
-                      style: TextStyle(color: Theme.of(context).colorScheme.error),
+                      _message!,
+                      style: TextStyle(color: _isError ? Theme.of(context).colorScheme.error : Theme.of(context).colorScheme.primary),
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -124,26 +115,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           textStyle: const TextStyle(fontSize: 16),
                         ),
-                        onPressed: _login,
-                        child: const Text("Entrar"),
+                        onPressed: _sendResetEmail,
+                        child: const Text("Enviar Email de Redefinição"),
                       ),
                 const SizedBox(height: 16),
                 TextButton(
                   onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (context) => const ForgotPasswordScreen()),
-                    );
+                    Navigator.of(context).pop(); // Go back to Login Screen
                   },
-                  child: const Text("Esqueceu a senha?"),
-                ),
-                const SizedBox(height: 8),
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (context) => const RegistrationScreen()),
-                    );
-                  },
-                  child: const Text("Não tem uma conta? Cadastre-se"),
+                  child: const Text("Voltar para o Login"),
                 ),
               ],
             ),
