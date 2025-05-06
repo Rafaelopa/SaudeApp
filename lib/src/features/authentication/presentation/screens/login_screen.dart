@@ -1,38 +1,45 @@
 // Presentation layer - Login Screen
 
-import 'package:flutter/material.dart';
-// TODO: Import AuthService and a StateNotifier/Provider for state management
+import "package:flutter/material.dart";
+import "package:flutter_riverpod/flutter_riverpod.dart";
+import "package:saude_app/src/features/authentication/presentation/screens/registration_screen.dart";
+import "package:saude_app/src/features/authentication/presentation/widgets/auth_gate.dart"; // For authServiceProvider
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
-
-  // TODO: Get AuthService instance from a provider
+  String? _errorMessage;
 
   Future<void> _login() async {
+    setState(() {
+      _errorMessage = null; // Clear previous error messages
+    });
     if (_formKey.currentState!.validate()) {
       setState(() {
         _isLoading = true;
       });
       try {
-        // TODO: Call authService.signInWithEmailAndPassword
-        // On success, navigation will be handled by AuthGate or similar
-        print("Login attempt with: ${_emailController.text}");
-      } catch (e) {
-        // TODO: Show error to user
-        print("Login error: $e");
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Falha no login: ${e.toString()}")),
+        final authService = ref.read(authServiceProvider);
+        await authService.signInWithEmailAndPassword(
+          _emailController.text.trim(),
+          _passwordController.text.trim(),
         );
+        // Navigation will be handled by AuthGate if successful
+      } catch (e) {
+        if (mounted) {
+          setState(() {
+            _errorMessage = "Falha no login: ${e.toString().replaceFirst("Exception: ", "")}";
+          });
+        }
       }
       if (mounted) {
         setState(() {
@@ -52,52 +59,94 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Login')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              TextFormField(
-                controller: _emailController,
-                decoration: const InputDecoration(labelText: 'Email'),
-                keyboardType: TextInputType.emailAddress,
-                validator: (value) {
-                  if (value == null || value.isEmpty || !value.contains('@')) {
-                    return 'Por favor, insira um email válido.';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _passwordController,
-                decoration: const InputDecoration(labelText: 'Senha'),
-                obscureText: true,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor, insira sua senha.';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 24),
-              _isLoading
-                  ? const CircularProgressIndicator()
-                  : ElevatedButton(
-                      onPressed: _login,
-                      child: const Text('Entrar'),
+      appBar: AppBar(title: const Text("Login - Saúde App")),
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24.0),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                Text(
+                  "Bem-vindo(a) de volta!",
+                  style: Theme.of(context).textTheme.headlineSmall,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                TextFormField(
+                  controller: _emailController,
+                  decoration: const InputDecoration(
+                    labelText: "Email",
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.email),
+                  ),
+                  keyboardType: TextInputType.emailAddress,
+                  validator: (value) {
+                    if (value == null || value.isEmpty || !value.contains("@")) {
+                      return "Por favor, insira um email válido.";
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _passwordController,
+                  decoration: const InputDecoration(
+                    labelText: "Senha",
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.lock),
+                  ),
+                  obscureText: true,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return "Por favor, insira sua senha.";
+                    }
+                    return null;
+                  },
+                ),
+                if (_errorMessage != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: Text(
+                      _errorMessage!,
+                      style: TextStyle(color: Theme.of(context).colorScheme.error),
+                      textAlign: TextAlign.center,
                     ),
-              TextButton(
-                onPressed: () {
-                  // TODO: Navigate to RegistrationScreen
-                  print("Navigate to registration screen");
-                },
-                child: const Text('Não tem uma conta? Cadastre-se'),
-              ),
-            ],
+                  ),
+                const SizedBox(height: 24),
+                _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          textStyle: const TextStyle(fontSize: 16),
+                        ),
+                        onPressed: _login,
+                        child: const Text("Entrar"),
+                      ),
+                const SizedBox(height: 16),
+                TextButton(
+                  onPressed: () {
+                    // TODO: Implement Forgot Password
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("Funcionalidade de recuperar senha ainda não implementada.")),
+                    );
+                  },
+                  child: const Text("Esqueceu a senha?"),
+                ),
+                const SizedBox(height: 8),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (context) => const RegistrationScreen()),
+                    );
+                  },
+                  child: const Text("Não tem uma conta? Cadastre-se"),
+                ),
+              ],
+            ),
           ),
         ),
       ),
