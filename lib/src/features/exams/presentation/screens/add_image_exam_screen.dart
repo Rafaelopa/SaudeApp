@@ -1,16 +1,18 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:image_picker/image_picker.dart'; // Using image_picker for now, consider file_picker for PDFs
 import 'package:intl/intl.dart';
-// TODO: Importar provedores e modelos necessários quando forem criados
+import 'package:saude_app_mobile/src/features/exams/application/exam_service.dart';
+import 'package:saude_app_mobile/src/features/exams/presentation/providers/exam_providers.dart';
 
-class AttachedFile {
-  final File file;
-  final String fileName;
-  // TODO: Adicionar status de upload
-  AttachedFile({required this.file, required this.fileName});
-}
+// Using XFile from image_picker directly for simplicity in this MVP stage
+// class AttachedFile {
+//   final File file;
+//   final String fileName;
+//   AttachedFile({required this.file, required this.fileName});
+// }
 
 class AddImageExamScreen extends ConsumerStatefulWidget {
   final String patientProfileId;
@@ -33,7 +35,7 @@ class _AddImageExamScreenState extends ConsumerState<AddImageExamScreen> {
   final _clinicNameController = TextEditingController();
   final _notesController = TextEditingController();
 
-  List<AttachedFile> _attachedFiles = [];
+  List<XFile> _pickedFiles = []; // Store XFile directly
   DateTime? _selectedDate;
   final ImagePicker _picker = ImagePicker();
 
@@ -61,57 +63,83 @@ class _AddImageExamScreenState extends ConsumerState<AddImageExamScreen> {
     }
   }
 
-  Future<void> _pickFiles() async {
-    // TODO: Adicionar suporte para outros tipos de arquivo (PDF) usando file_picker
-    final List<XFile>? pickedFiles = await _picker.pickMultiImage();
-
-    if (pickedFiles != null && pickedFiles.isNotEmpty) {
+  Future<void> _pickMedia() async {
+    // For MVP, let's stick to multi-image. PDF would require file_picker and more handling.
+    final List<XFile>? images = await _picker.pickMultiImage();
+    if (images != null && images.isNotEmpty) {
       setState(() {
-        for (var pickedFile in pickedFiles) {
-          _attachedFiles.add(AttachedFile(file: File(pickedFile.path), fileName: pickedFile.name));
-        }
+        _pickedFiles.addAll(images);
       });
     }
+    // TODO: Implement file_picker for PDFs if required beyond MVP
+    // final result = await FilePicker.platform.pickFiles(allowMultiple: true, type: FileType.custom, allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png']);
+    // if (result != null) {
+    //   setState(() {
+    //     _pickedFiles.addAll(result.paths.map((path) => File(path!)).toList());
+    //   });
+    // }
   }
 
   void _removeFile(int index) {
     setState(() {
-      _attachedFiles.removeAt(index);
+      _pickedFiles.removeAt(index);
     });
   }
 
-  void _submitForm() {
+  Future<void> _submitForm() async {
     if (_formKey.currentState!.validate()) {
-      if (_attachedFiles.isEmpty) {
+      if (_pickedFiles.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Por favor, adicione pelo menos um arquivo de exame.')),
         );
         return;
       }
-      // TODO: Implementar lógica de salvamento com Firebase (metadados no Firestore, arquivos no Storage)
-      // Coletar dados:
-      // String examTitle = _examTitleController.text;
-      // DateTime examDate = _selectedDate!;
-      // String clinicName = _clinicNameController.text;
-      // String notes = _notesController.text;
-      // List<File> filesToUpload = _attachedFiles.map((af) => af.file).toList();
+      if (_selectedDate == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Por favor, selecione a data de realização.')),
+        );
+        return;
+      }
 
+      ref.read(examSavingProvider.notifier).state = true;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Salvando exame de imagem...')),
       );
-      // Simulação de salvamento
-      Future.delayed(const Duration(seconds: 1), () {
+
+      try {
+        final examService = ref.read(examServiceProvider);
+        List<File> filesToUpload = _pickedFiles.map((xfile) => File(xfile.path)).toList();
+
+        await examService.addImageExam(
+          patientProfileId: widget.patientProfileId,
+          patientName: widget.patientName,
+          examTitle: _examTitleController.text,
+          examDate: _selectedDate!,
+          clinicName: _clinicNameController.text.isEmpty ? null : _clinicNameController.text,
+          notes: _notesController.text.isEmpty ? null : _notesController.text,
+          imageFilesToUpload: filesToUpload,
+        );
+
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Exame salvo com sucesso! (Simulado)')),
+          const SnackBar(content: Text('Exame de imagem salvo com sucesso!')),
         );
-        Navigator.of(context).pop(); // TODO: Navegar para a lista de exames
-      });
+        Navigator.of(context).pop(); // Volta para a tela de seleção de tipo
+      } catch (e) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro ao salvar exame: ${e.toString()}')),
+        );
+      } finally {
+        ref.read(examSavingProvider.notifier).state = false;
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final isSaving = ref.watch(examSavingProvider);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Novo Exame de Imagem'),
@@ -126,7 +154,7 @@ class _AddImageExamScreenState extends ConsumerState<AddImageExamScreen> {
               const SizedBox(height: 16),
               TextFormField(
                 controller: _examTitleController,
-                decoration: const InputDecoration(labelText: 'Título do Exame*'),
+                decoration: const InputDecoration(labelText: 'Título do Exame*', border: OutlineInputBorder()),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Por favor, insira o título do exame';
@@ -134,9 +162,10 @@ class _AddImageExamScreenState extends ConsumerState<AddImageExamScreen> {
                   return null;
                 },
               ),
+              const SizedBox(height: 12),
               TextFormField(
                 controller: _examDateController,
-                decoration: const InputDecoration(labelText: 'Data da Realização*'),
+                decoration: const InputDecoration(labelText: 'Data da Realização*', border: OutlineInputBorder()),
                 readOnly: true,
                 onTap: () => _selectDate(context),
                 validator: (value) {
@@ -146,58 +175,57 @@ class _AddImageExamScreenState extends ConsumerState<AddImageExamScreen> {
                   return null;
                 },
               ),
+              const SizedBox(height: 12),
               TextFormField(
                 controller: _clinicNameController,
-                decoration: const InputDecoration(labelText: 'Clínica/Hospital'),
+                decoration: const InputDecoration(labelText: 'Clínica/Hospital', border: OutlineInputBorder()),
               ),
               const SizedBox(height: 20),
               Text('Arquivos do Exame*', style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: 8),
               ElevatedButton.icon(
                 icon: const Icon(Icons.add_photo_alternate_outlined),
-                label: const Text('Adicionar Arquivos (Imagem, PDF)'),
-                onPressed: _pickFiles,
+                label: const Text('Adicionar Arquivos (Imagem/PDF)'), // Label genérico
+                onPressed: _pickMedia,
               ),
               const SizedBox(height: 10),
-              if (_attachedFiles.isNotEmpty)
+              if (_pickedFiles.isNotEmpty)
                 ListView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  itemCount: _attachedFiles.length,
+                  itemCount: _pickedFiles.length,
                   itemBuilder: (context, index) {
-                    final attachedFile = _attachedFiles[index];
+                    final xFile = _pickedFiles[index];
                     return Card(
+                      elevation: 1,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                       child: ListTile(
-                        leading: Icon(Icons.insert_drive_file_outlined), // TODO: Melhorar ícone por tipo
-                        title: Text(attachedFile.fileName),
-                        // TODO: Adicionar indicador de progresso de upload
+                        leading: const Icon(Icons.insert_drive_file_outlined), // TODO: Melhorar ícone por tipo de arquivo
+                        title: Text(xFile.name, overflow: TextOverflow.ellipsis),
                         trailing: IconButton(
-                          icon: const Icon(Icons.remove_circle_outline, color: Colors.red),
+                          icon: const Icon(Icons.remove_circle_outline, color: Colors.redAccent),
                           onPressed: () => _removeFile(index),
                         ),
                       ),
                     );
                   },
                 ),
-              if (_attachedFiles.isEmpty && _formKey.currentState?.validate() == false && _formKey.currentState?.errors['files'] != null) // Tentativa de mostrar erro se submetido sem arquivos
-                Padding(
-                  padding: const EdgeInsets.only(top: 8.0),
-                  child: Text(
-                    'Por favor, adicione pelo menos um arquivo.',
-                    style: TextStyle(color: Theme.of(context).colorScheme.error),
-                  ),
-                ), 
               const SizedBox(height: 20),
               TextFormField(
                 controller: _notesController,
-                decoration: const InputDecoration(labelText: 'Notas/Observações'),
+                decoration: const InputDecoration(labelText: 'Notas/Observações', border: OutlineInputBorder()),
                 maxLines: 3,
               ),
               const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: _submitForm,
-                child: const Text('Salvar Exame'),
-              ),
+              if (isSaving)
+                const Center(child: CircularProgressIndicator())
+              else
+                ElevatedButton(
+                  onPressed: _submitForm,
+                  style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 12)),
+                  child: const Text('Salvar Exame', style: TextStyle(fontSize: 16)),
+                ),
+              const SizedBox(height: 8),
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
                 child: const Text('Cancelar'),

@@ -1,15 +1,22 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
-// TODO: Importar provedores e modelos necessários quando forem criados
+import 'package:saude_app_mobile/src/features/exams/application/exam_service.dart';
+import 'package:saude_app_mobile/src/features/exams/domain/exam_model.dart';
+import 'package:saude_app_mobile/src/features/exams/presentation/providers/exam_providers.dart';
 
-class LabExamData {
+// Re-definindo LabExamData localmente para manter a estrutura da UI, 
+// mas a conversão para LabResultItem acontecerá no momento do salvamento.
+class LabExamUIData {
   String biomarkerName;
   String value;
   String unit;
   String referenceRange;
 
-  LabExamData({
+  LabExamUIData({
     this.biomarkerName = '',
     this.value = '',
     this.unit = '',
@@ -38,10 +45,10 @@ class _AddLabExamScreenState extends ConsumerState<AddLabExamScreen> {
   final _clinicNameController = TextEditingController();
   final _notesController = TextEditingController();
 
-  List<LabExamData> _labResults = [LabExamData()];
+  List<LabExamUIData> _labResults = [LabExamUIData()];
   DateTime? _selectedDate;
-
-  // TODO: Adicionar lógica para anexo de arquivo
+  File? _attachmentFile;
+  final ImagePicker _picker = ImagePicker();
 
   @override
   void dispose() {
@@ -69,7 +76,7 @@ class _AddLabExamScreenState extends ConsumerState<AddLabExamScreen> {
 
   void _addBiomarker() {
     setState(() {
-      _labResults.add(LabExamData());
+      _labResults.add(LabExamUIData());
     });
   }
 
@@ -81,37 +88,76 @@ class _AddLabExamScreenState extends ConsumerState<AddLabExamScreen> {
     });
   }
 
-  void _submitForm() {
-    if (_formKey.currentState!.validate()) {
-      // TODO: Implementar lógica de salvamento com Firebase
-      // Coletar dados:
-      // String examTitle = _examTitleController.text;
-      // DateTime examDate = _selectedDate!;
-      // String clinicName = _clinicNameController.text;
-      // String notes = _notesController.text;
-      // List<Map<String, String>> resultsToSave = _labResults.map((item) => {
-      //   'biomarkerName': item.biomarkerName,
-      //   'value': item.value,
-      //   'unit': item.unit,
-      //   'referenceRange': item.referenceRange,
-      // }).toList();
+  Future<void> _pickAttachment() async {
+    // Permitir PDF ou Imagem
+    // Por simplicidade, usando image_picker para imagens. Para PDFs, file_picker seria mais adequado.
+    // Aqui, vamos focar em imagem por enquanto, mas a lógica pode ser expandida.
+    final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _attachmentFile = File(pickedFile.path);
+      });
+    }
+  }
 
+  void _removeAttachment() {
+    setState(() {
+      _attachmentFile = null;
+    });
+  }
+
+  Future<void> _submitForm() async {
+    if (_formKey.currentState!.validate()) {
+      if (_selectedDate == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Por favor, selecione a data de realização.')),
+        );
+        return;
+      }
+
+      ref.read(examSavingProvider.notifier).state = true;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Salvando exame laboratorial...')),
       );
-      // Simulação de salvamento
-      Future.delayed(const Duration(seconds: 1), () {
+
+      try {
+        final examService = ref.read(examServiceProvider);
+        await examService.addLabExam(
+          patientProfileId: widget.patientProfileId,
+          patientName: widget.patientName,
+          examTitle: _examTitleController.text,
+          examDate: _selectedDate!,
+          clinicName: _clinicNameController.text.isEmpty ? null : _clinicNameController.text,
+          notes: _notesController.text.isEmpty ? null : _notesController.text,
+          labResults: _labResults.map((uiData) => LabResultItem(
+            biomarkerName: uiData.biomarkerName,
+            value: uiData.value,
+            unit: uiData.unit,
+            referenceRange: uiData.referenceRange.isEmpty ? null : uiData.referenceRange,
+          )).toList(),
+          attachmentFile: _attachmentFile,
+        );
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Exame salvo com sucesso! (Simulado)')),
+          const SnackBar(content: Text('Exame laboratorial salvo com sucesso!')),
         );
-        Navigator.of(context).pop();
-      });
+        Navigator.of(context).pop(); // Volta para a tela de seleção de tipo
+        // Considerar pop duplo se quiser voltar para a lista de exames do perfil
+      } catch (e) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro ao salvar exame: ${e.toString()}')),
+        );
+      } finally {
+        ref.read(examSavingProvider.notifier).state = false;
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final isSaving = ref.watch(examSavingProvider);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Novo Exame Laboratorial'),
@@ -126,7 +172,7 @@ class _AddLabExamScreenState extends ConsumerState<AddLabExamScreen> {
               const SizedBox(height: 16),
               TextFormField(
                 controller: _examTitleController,
-                decoration: const InputDecoration(labelText: 'Título do Exame*'),
+                decoration: const InputDecoration(labelText: 'Título do Exame*', border: OutlineInputBorder()),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Por favor, insira o título do exame';
@@ -134,9 +180,10 @@ class _AddLabExamScreenState extends ConsumerState<AddLabExamScreen> {
                   return null;
                 },
               ),
+              const SizedBox(height: 12),
               TextFormField(
                 controller: _examDateController,
-                decoration: const InputDecoration(labelText: 'Data da Realização*'),
+                decoration: const InputDecoration(labelText: 'Data da Realização*', border: OutlineInputBorder()),
                 readOnly: true,
                 onTap: () => _selectDate(context),
                 validator: (value) {
@@ -146,9 +193,10 @@ class _AddLabExamScreenState extends ConsumerState<AddLabExamScreen> {
                   return null;
                 },
               ),
+              const SizedBox(height: 12),
               TextFormField(
                 controller: _clinicNameController,
-                decoration: const InputDecoration(labelText: 'Clínica/Laboratório'),
+                decoration: const InputDecoration(labelText: 'Clínica/Laboratório', border: OutlineInputBorder()),
               ),
               const SizedBox(height: 20),
               Text('Itens do Exame', style: Theme.of(context).textTheme.titleMedium),
@@ -163,19 +211,41 @@ class _AddLabExamScreenState extends ConsumerState<AddLabExamScreen> {
                 ),
               ),
               const SizedBox(height: 20),
-              // TODO: Adicionar UI para anexo de laudo
-              ElevatedButton(onPressed: () {/* TODO: Anexar laudo */}, child: const Text('Anexar Laudo Original (PDF, Imagem)')),
-              const SizedBox(height: 10),
+              Text('Anexo (Opcional)', style: Theme.of(context).textTheme.titleMedium),
+              const SizedBox(height: 8),
+              if (_attachmentFile == null)
+                ElevatedButton.icon(
+                  icon: const Icon(Icons.attach_file),
+                  label: const Text('Anexar Laudo Original (PDF/Imagem)'),
+                  onPressed: _pickAttachment,
+                )
+              else
+                Card(
+                  child: ListTile(
+                    leading: const Icon(Icons.file_present_rounded),
+                    title: Text(_attachmentFile!.path.split('/').last),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.remove_circle_outline, color: Colors.red),
+                      onPressed: _removeAttachment,
+                    ),
+                  ),
+                ),
+              const SizedBox(height: 20),
               TextFormField(
                 controller: _notesController,
-                decoration: const InputDecoration(labelText: 'Notas/Observações'),
+                decoration: const InputDecoration(labelText: 'Notas/Observações', border: OutlineInputBorder()),
                 maxLines: 3,
               ),
               const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: _submitForm,
-                child: const Text('Salvar Exame'),
-              ),
+              if (isSaving)
+                const Center(child: CircularProgressIndicator())
+              else
+                ElevatedButton(
+                  onPressed: _submitForm,
+                  style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 12)),
+                  child: const Text('Salvar Exame', style: TextStyle(fontSize: 16)),
+                ),
+              const SizedBox(height: 8),
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
                 child: const Text('Cancelar'),
@@ -194,7 +264,8 @@ class _AddLabExamScreenState extends ConsumerState<AddLabExamScreen> {
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 8.0),
           child: Card(
-            elevation: 2,
+            elevation: 1,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             child: Padding(
               padding: const EdgeInsets.all(12.0),
               child: Column(
@@ -203,17 +274,20 @@ class _AddLabExamScreenState extends ConsumerState<AddLabExamScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('Item ${i + 1}', style: Theme.of(context).textTheme.titleSmall),
+                      Text('Item ${i + 1}', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
                       if (_labResults.length > 1)
                         IconButton(
-                          icon: const Icon(Icons.remove_circle, color: Colors.red),
+                          icon: const Icon(Icons.remove_circle, color: Colors.redAccent),
                           onPressed: () => _removeBiomarker(i),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
                         ),
                     ],
                   ),
+                  const SizedBox(height: 8),
                   TextFormField(
                     initialValue: _labResults[i].biomarkerName,
-                    decoration: const InputDecoration(labelText: 'Nome do Item/Biomarcador*'),
+                    decoration: const InputDecoration(labelText: 'Nome do Item/Biomarcador*', border: OutlineInputBorder()),
                     onChanged: (value) => _labResults[i].biomarkerName = value,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -222,9 +296,10 @@ class _AddLabExamScreenState extends ConsumerState<AddLabExamScreen> {
                       return null;
                     },
                   ),
+                  const SizedBox(height: 8),
                   TextFormField(
                     initialValue: _labResults[i].value,
-                    decoration: const InputDecoration(labelText: 'Valor*'),
+                    decoration: const InputDecoration(labelText: 'Valor*', border: OutlineInputBorder()),
                     onChanged: (value) => _labResults[i].value = value,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -233,9 +308,10 @@ class _AddLabExamScreenState extends ConsumerState<AddLabExamScreen> {
                       return null;
                     },
                   ),
+                  const SizedBox(height: 8),
                   TextFormField(
                     initialValue: _labResults[i].unit,
-                    decoration: const InputDecoration(labelText: 'Unidade*'),
+                    decoration: const InputDecoration(labelText: 'Unidade*', border: OutlineInputBorder()),
                     onChanged: (value) => _labResults[i].unit = value,
                      validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -244,9 +320,10 @@ class _AddLabExamScreenState extends ConsumerState<AddLabExamScreen> {
                       return null;
                     },
                   ),
+                  const SizedBox(height: 8),
                   TextFormField(
                     initialValue: _labResults[i].referenceRange,
-                    decoration: const InputDecoration(labelText: 'Faixa de Referência'),
+                    decoration: const InputDecoration(labelText: 'Faixa de Referência', border: OutlineInputBorder()),
                     onChanged: (value) => _labResults[i].referenceRange = value,
                   ),
                 ],
