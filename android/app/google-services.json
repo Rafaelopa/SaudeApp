@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "596204006655",
+    "project_id": "saudeapp-69c5a",
+    "storage_bucket": "saudeapp-69c5a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:596204006655:android:4372b786484dfe8f6370ca",
+        "android_client_info": {
+          "package_name": "com.rafaelopa.saude_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "596204006655-hqv9rpdaffei70e8b5ldfnf8eck8sqh5.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB9iAousxoWlTJuhTG_ZB7rpVNdN524nX0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "596204006655-hqv9rpdaffei70e8b5ldfnf8eck8sqh5.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
