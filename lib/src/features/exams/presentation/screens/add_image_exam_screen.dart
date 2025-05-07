@@ -14,11 +14,11 @@ class AddImageExamScreen extends ConsumerStatefulWidget {
   final ExamModel? examToEdit;
 
   const AddImageExamScreen({
-    Key? key,
+    super.key,
     required this.patientProfileId,
     required this.patientName,
     this.examToEdit,
-  }) : super(key: key);
+  });
 
   @override
   _AddImageExamScreenState createState() => _AddImageExamScreenState();
@@ -31,7 +31,7 @@ class _AddImageExamScreenState extends ConsumerState<AddImageExamScreen> {
   late TextEditingController _clinicNameController;
   late TextEditingController _notesController;
 
-  List<XFile> _pickedFiles = []; // Para novos arquivos a serem adicionados
+  final List<XFile> _pickedFiles = []; // Para novos arquivos a serem adicionados
   List<ImageFileAttachment> _existingImageFiles = []; // Para arquivos existentes no modo de edição
   DateTime? _selectedDate;
   final ImagePicker _picker = ImagePicker();
@@ -87,7 +87,7 @@ class _AddImageExamScreenState extends ConsumerState<AddImageExamScreen> {
   }
 
   Future<void> _pickMedia() async {
-    final List<XFile>? images = await _picker.pickMultiImage();
+    final List<XFile> images = await _picker.pickMultiImage();
     if (images != null && images.isNotEmpty) {
       setState(() {
         _pickedFiles.addAll(images);

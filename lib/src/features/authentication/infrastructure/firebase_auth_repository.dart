@@ -33,7 +33,7 @@ class FirebaseAuthRepository implements AuthRepository {
     } catch (e) {
       // TODO: Handle specific Firebase exceptions
       print(e.toString());
-      throw e; // Or a custom exception
+      rethrow; // Or a custom exception
     }
   }
 
@@ -51,7 +51,7 @@ class FirebaseAuthRepository implements AuthRepository {
     } catch (e) {
       // TODO: Handle specific Firebase exceptions
       print(e.toString());
-      throw e; // Or a custom exception
+      rethrow; // Or a custom exception
     }
   }
 
@@ -62,7 +62,7 @@ class FirebaseAuthRepository implements AuthRepository {
     } catch (e) {
       // TODO: Handle specific Firebase exceptions
       print(e.toString());
-      throw e; // Or a custom exception
+      rethrow; // Or a custom exception
     }
   }
 }

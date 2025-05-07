@@ -5,7 +5,7 @@ import "package:flutter_riverpod/flutter_riverpod.dart";
 // TODO: Definir provedor para AuthService
 
 class ChangePasswordScreen extends ConsumerStatefulWidget {
-  const ChangePasswordScreen({Key? key}) : super(key: key);
+  const ChangePasswordScreen({super.key});
 
   @override
   _ChangePasswordScreenState createState() => _ChangePasswordScreenState();

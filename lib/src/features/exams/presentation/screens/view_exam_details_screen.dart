@@ -11,7 +11,7 @@ import 'package:url_launcher/url_launcher.dart';
 class ViewExamDetailsScreen extends ConsumerWidget {
   final ExamModel exam;
 
-  const ViewExamDetailsScreen({Key? key, required this.exam}) : super(key: key);
+  const ViewExamDetailsScreen({super.key, required this.exam});
 
   Future<void> _deleteExam(BuildContext context, WidgetRef ref) async {
     final bool confirmDelete = await showDialog(

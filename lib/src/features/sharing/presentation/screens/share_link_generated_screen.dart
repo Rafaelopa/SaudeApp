@@ -10,11 +10,11 @@ class ShareLinkGeneratedScreen extends StatelessWidget {
   final DateTime expiresAt;
 
   const ShareLinkGeneratedScreen({
-    Key? key,
+    super.key,
     required this.shareLink,
     this.password,
     required this.expiresAt,
-  }) : super(key: key);
+  });
 
   void _copyToClipboard(BuildContext context, String text, String type) {
     Clipboard.setData(ClipboardData(text: text)).then((_) {
@@ -86,7 +86,6 @@ class ShareLinkGeneratedScreen extends StatelessWidget {
             // ),
             // const SizedBox(height: 12),
             ElevatedButton(
-              child: const Text('Gerenciar Meus Links', style: TextStyle(fontSize: 16)),
               onPressed: () {
                 // TODO: Navegar para ManageSharedLinksScreen
                 // Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => ManageSharedLinksScreen()));
@@ -95,6 +94,7 @@ class ShareLinkGeneratedScreen extends StatelessWidget {
                   );
               },
               style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 12)),
+              child: const Text('Gerenciar Meus Links', style: TextStyle(fontSize: 16)),
             ),
             const SizedBox(height: 12),
             TextButton(

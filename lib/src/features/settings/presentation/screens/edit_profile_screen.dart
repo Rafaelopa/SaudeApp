@@ -7,7 +7,7 @@ import "package:intl/intl.dart";
 // TODO: Definir provedores para UserProfileService e para o estado do perfil do usuário
 
 class EditProfileScreen extends ConsumerStatefulWidget {
-  const EditProfileScreen({Key? key}) : super(key: key);
+  const EditProfileScreen({super.key});
 
   @override
   _EditProfileScreenState createState() => _EditProfileScreenState();
@@ -25,10 +25,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   bool _isEditable = true; // Para controlar a edição após carregar dados
 
   // Simulação de dados do usuário - substituir por dados reais do provedor
-  String _initialName = "Usuário Exemplo";
-  String _initialEmail = "usuario@exemplo.com";
-  DateTime? _initialDob = DateTime(1990, 5, 15);
-  String? _initialGender = "Masculino";
+  final String _initialName = "Usuário Exemplo";
+  final String _initialEmail = "usuario@exemplo.com";
+  final DateTime? _initialDob = DateTime(1990, 5, 15);
+  final String? _initialGender = "Masculino";
 
   @override
   void initState() {

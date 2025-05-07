@@ -6,21 +6,21 @@ import "package:flutter_riverpod/flutter_riverpod.dart";
 // TODO: Definir provedor para SubscriptionService e para o estado da assinatura do usuário
 
 class SubscriptionDetailsScreen extends ConsumerStatefulWidget {
-  const SubscriptionDetailsScreen({Key? key}) : super(key: key);
+  const SubscriptionDetailsScreen({super.key});
 
   @override
   _SubscriptionDetailsScreenState createState() => _SubscriptionDetailsScreenState();
 }
 
 class _SubscriptionDetailsScreenState extends ConsumerState<SubscriptionDetailsScreen> {
-  bool _isLoading = false;
+  final bool _isLoading = false;
 
   // Simulação de dados da assinatura - substituir por dados reais do provedor
-  String _subscriptionStatus = "Premium Mensal";
-  String _startDate = "01/04/2024";
-  String _expiresDate = "01/05/2025";
-  String _managedBy = "Google Play"; // ou "App Store"
-  List<String> _benefits = [
+  final String _subscriptionStatus = "Premium Mensal";
+  final String _startDate = "01/04/2024";
+  final String _expiresDate = "01/05/2025";
+  final String _managedBy = "Google Play"; // ou "App Store"
+  final List<String> _benefits = [
     "Armazenamento ilimitado de exames",
     "Compartilhamento com múltiplos médicos",
     "Perfis de dependentes ilimitados",

@@ -6,15 +6,15 @@ import "package:flutter_riverpod/flutter_riverpod.dart";
 // TODO: Definir provedor para PackageInfo se for usar
 
 class AboutAppScreen extends ConsumerStatefulWidget {
-  const AboutAppScreen({Key? key}) : super(key: key);
+  const AboutAppScreen({super.key});
 
   @override
   _AboutAppScreenState createState() => _AboutAppScreenState();
 }
 
 class _AboutAppScreenState extends ConsumerState<AboutAppScreen> {
-  String _appVersion = "1.0.0"; // Placeholder
-  bool _isLoading = false;
+  final String _appVersion = "1.0.0"; // Placeholder
+  final bool _isLoading = false;
 
   @override
   void initState() {

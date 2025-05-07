@@ -5,7 +5,7 @@ import "package:flutter_riverpod/flutter_riverpod.dart";
 // TODO: Definir provedores para SettingsService e para o estado das configurações de notificação
 
 class NotificationSettingsScreen extends ConsumerStatefulWidget {
-  const NotificationSettingsScreen({Key? key}) : super(key: key);
+  const NotificationSettingsScreen({super.key});
 
   @override
   _NotificationSettingsScreenState createState() => _NotificationSettingsScreenState();

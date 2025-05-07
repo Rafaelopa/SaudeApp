@@ -244,10 +244,10 @@ class _ViewEditDependentScreenState extends ConsumerState<ViewEditDependentScree
               backgroundImage: dependent.photoUrl != null && dependent.photoUrl!.isNotEmpty 
                   ? NetworkImage(dependent.photoUrl!) 
                   : null,
+              backgroundColor: Colors.grey[300],
               child: (dependent.photoUrl == null || dependent.photoUrl!.isEmpty) 
                   ? Text(dependent.name.isNotEmpty ? dependent.name[0].toUpperCase() : "?", style: const TextStyle(fontSize: 40))
                   : null,
-              backgroundColor: Colors.grey[300],
             ),
           ),
           const SizedBox(height: 24),

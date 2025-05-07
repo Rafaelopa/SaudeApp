@@ -17,10 +17,10 @@ class ExamHistoryListScreen extends ConsumerWidget {
   final String patientName;
 
   const ExamHistoryListScreen({
-    Key? key,
+    super.key,
     required this.patientProfileId,
     required this.patientName,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

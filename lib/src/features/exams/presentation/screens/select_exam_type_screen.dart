@@ -8,10 +8,10 @@ class SelectExamTypeScreen extends ConsumerWidget {
   final String patientName;
 
   const SelectExamTypeScreen({
-    Key? key,
+    super.key,
     required this.patientProfileId,
     required this.patientName,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

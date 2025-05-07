@@ -12,12 +12,12 @@ class ConfigureShareLinkScreen extends ConsumerStatefulWidget {
   final bool shareFullProfile;
 
   const ConfigureShareLinkScreen({
-    Key? key,
+    super.key,
     required this.patientProfileId,
     required this.patientName,
     this.examIdsToShare,
     this.shareFullProfile = false,
-  }) : super(key: key);
+  });
 
   @override
   _ConfigureShareLinkScreenState createState() => _ConfigureShareLinkScreenState();

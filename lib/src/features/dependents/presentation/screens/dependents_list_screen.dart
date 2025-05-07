@@ -104,10 +104,10 @@ class DependentsListScreen extends ConsumerWidget {
               backgroundImage: dependent.photoUrl != null && dependent.photoUrl!.isNotEmpty 
                   ? NetworkImage(dependent.photoUrl!) 
                   : null,
+              backgroundColor: Colors.grey[300],
               child: (dependent.photoUrl == null || dependent.photoUrl!.isEmpty) 
                   ? Text(dependent.name.isNotEmpty ? dependent.name[0].toUpperCase() : "?", style: const TextStyle(fontSize: 24))
                   : null,
-              backgroundColor: Colors.grey[300],
             ),
             title: Text(dependent.name, style: const TextStyle(fontWeight: FontWeight.bold)),
             subtitle: Text("${dependent.relationship == "Outro" && dependent.customRelationship != null && dependent.customRelationship!.isNotEmpty ? dependent.customRelationship : dependent.relationship} - $age anos"),

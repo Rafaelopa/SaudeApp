@@ -13,7 +13,7 @@ import "package:saude_app/src/features/settings/presentation/screens/subscriptio
 // Exemplo: final authServiceProvider = Provider<AuthService>((ref) => AuthService(FirebaseAuth.instance));
 
 class SettingsScreen extends ConsumerWidget {
-  const SettingsScreen({Key? key}) : super(key: key);
+  const SettingsScreen({super.key});
 
   void _navigateTo(BuildContext context, Widget screen) {
     Navigator.push(context, MaterialPageRoute(builder: (context) => screen));

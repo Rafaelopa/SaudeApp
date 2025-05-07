@@ -6,7 +6,7 @@ import "package:flutter_riverpod/flutter_riverpod.dart";
 // TODO: Definir provedor para AuthService
 
 class DeleteAccountScreen extends ConsumerStatefulWidget {
-  const DeleteAccountScreen({Key? key}) : super(key: key);
+  const DeleteAccountScreen({super.key});
 
   @override
   _DeleteAccountScreenState createState() => _DeleteAccountScreenState();

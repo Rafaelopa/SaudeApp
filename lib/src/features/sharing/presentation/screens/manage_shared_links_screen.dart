@@ -7,7 +7,7 @@ import "package:saude_app/src/features/sharing/domain/sharing_model.dart";
 import "package:saude_app/src/features/sharing/presentation/providers/sharing_providers.dart";
 
 class ManageSharedLinksScreen extends ConsumerWidget {
-  const ManageSharedLinksScreen({Key? key}) : super(key: key);
+  const ManageSharedLinksScreen({super.key});
 
   Future<void> _revokeLink(BuildContext context, WidgetRef ref, String linkId) async {
     final bool confirmRevoke = await showDialog(
@@ -107,8 +107,8 @@ class ManageSharedLinksScreen extends ConsumerWidget {
                   const SizedBox(height: 10),
                   TextButton(
                     onPressed: () => Navigator.of(ctx).pop(),
-                    child: const Text("Fechar", style: TextStyle(fontSize: 16)),
                     style: TextButton.styleFrom(minimumSize: const Size(double.infinity, 40)),
+                    child: const Text("Fechar", style: TextStyle(fontSize: 16)),
                   ),
                 ],
               ),

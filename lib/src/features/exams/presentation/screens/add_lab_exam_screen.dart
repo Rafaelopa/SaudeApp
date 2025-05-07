@@ -28,11 +28,11 @@ class AddLabExamScreen extends ConsumerStatefulWidget {
   final ExamModel? examToEdit; // Novo parâmetro para edição
 
   const AddLabExamScreen({
-    Key? key,
+    super.key,
     required this.patientProfileId,
     required this.patientName,
     this.examToEdit,
-  }) : super(key: key);
+  });
 
   @override
   _AddLabExamScreenState createState() => _AddLabExamScreenState();
