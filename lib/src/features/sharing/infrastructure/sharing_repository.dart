@@ -1,5 +1,5 @@
 import "package:cloud_firestore/cloud_firestore.dart";
-import "package:saude_app_mobile/src/features/sharing/domain/sharing_model.dart";
+import "package:saude_app/src/features/sharing/domain/sharing_model.dart";
 
 class SharingRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;

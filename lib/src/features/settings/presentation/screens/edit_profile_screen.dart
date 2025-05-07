@@ -1,8 +1,8 @@
 import "package:flutter/material.dart";
 import "package:flutter_riverpod/flutter_riverpod.dart";
 import "package:intl/intl.dart";
-// import "package:saude_app_mobile/src/features/authentication/application/auth_service.dart"; // Para buscar dados do usuário
-// import "package:saude_app_mobile/src/features/settings/application/user_profile_service.dart"; // Para atualizar dados do perfil
+// import "package:saude_app/src/features/authentication/application/auth_service.dart"; // Para buscar dados do usuário
+// import "package:saude_app/src/features/settings/application/user_profile_service.dart"; // Para atualizar dados do perfil
 
 // TODO: Definir provedores para UserProfileService e para o estado do perfil do usuário
 

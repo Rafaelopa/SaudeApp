@@ -1,7 +1,7 @@
 import "package:flutter_riverpod/flutter_riverpod.dart";
-import "package:saude_app_mobile/src/features/sharing/application/sharing_service.dart";
-import "package:saude_app_mobile/src/features/sharing/domain/sharing_model.dart";
-import "package:saude_app_mobile/src/features/sharing/infrastructure/sharing_repository.dart";
+import "package:saude_app/src/features/sharing/application/sharing_service.dart";
+import "package:saude_app/src/features/sharing/domain/sharing_model.dart";
+import "package:saude_app/src/features/sharing/infrastructure/sharing_repository.dart";
 
 // Provedor para o SharingRepository
 final sharingRepositoryProvider = Provider<SharingRepository>((ref) {

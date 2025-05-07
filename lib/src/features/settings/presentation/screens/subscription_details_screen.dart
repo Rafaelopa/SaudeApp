@@ -1,6 +1,6 @@
 import "package:flutter/material.dart";
 import "package:flutter_riverpod/flutter_riverpod.dart";
-// import "package:saude_app_mobile/src/features/subscription/application/subscription_service.dart"; // Para buscar dados da assinatura
+// import "package:saude_app/src/features/subscription/application/subscription_service.dart"; // Para buscar dados da assinatura
 // import "package:url_launcher/url_launcher.dart"; // Para abrir links externos
 
 // TODO: Definir provedor para SubscriptionService e para o estado da assinatura do usuário

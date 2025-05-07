@@ -1,6 +1,6 @@
 import "package:flutter/material.dart";
 import "package:flutter_riverpod/flutter_riverpod.dart";
-// import "package:saude_app_mobile/src/features/settings/application/settings_service.dart"; // Para salvar as preferências
+// import "package:saude_app/src/features/settings/application/settings_service.dart"; // Para salvar as preferências
 
 // TODO: Definir provedores para SettingsService e para o estado das configurações de notificação
 

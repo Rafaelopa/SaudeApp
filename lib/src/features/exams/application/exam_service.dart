@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:saude_app_mobile/src/features/exams/domain/exam_model.dart';
-import 'package:saude_app_mobile/src/features/exams/infrastructure/exam_repository.dart';
+import 'package:saude_app/src/features/exams/domain/exam_model.dart';
+import 'package:saude_app/src/features/exams/infrastructure/exam_repository.dart';
 
 class ExamService {
   final ExamRepository _examRepository;

@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:saude_app_mobile/src/features/exams/domain/exam_model.dart';
+import 'package:saude_app/src/features/exams/domain/exam_model.dart';
 
 class ExamRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:saude_app_mobile/src/features/exams/domain/exam_model.dart';
-import 'package:saude_app_mobile/src/features/exams/infrastructure/exam_repository.dart'; // Para o streamProvider
-import 'package:saude_app_mobile/src/features/exams/presentation/screens/select_exam_type_screen.dart';
-import 'package:saude_app_mobile/src/features/exams/presentation/screens/view_exam_details_screen.dart'; // Será criada depois
+import 'package:saude_app/src/features/exams/domain/exam_model.dart';
+import 'package:saude_app/src/features/exams/infrastructure/exam_repository.dart'; // Para o streamProvider
+import 'package:saude_app/src/features/exams/presentation/screens/select_exam_type_screen.dart';
+import 'package:saude_app/src/features/exams/presentation/screens/view_exam_details_screen.dart'; // Será criada depois
 
 // Provedor para o stream de exames de um paciente específico
 final patientExamsStreamProvider = StreamProvider.autoDispose.family<List<ExamModel>, String>((ref, patientProfileId) {

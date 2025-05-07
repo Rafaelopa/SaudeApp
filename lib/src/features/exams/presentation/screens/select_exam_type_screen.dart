@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:saude_app_mobile/src/features/exams/presentation/screens/add_image_exam_screen.dart';
-import 'package:saude_app_mobile/src/features/exams/presentation/screens/add_lab_exam_screen.dart';
+import 'package:saude_app/src/features/exams/presentation/screens/add_image_exam_screen.dart';
+import 'package:saude_app/src/features/exams/presentation/screens/add_lab_exam_screen.dart';
 
 class SelectExamTypeScreen extends ConsumerWidget {
   final String patientProfileId;

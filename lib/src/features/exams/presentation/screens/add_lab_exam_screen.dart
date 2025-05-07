@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
-import 'package:saude_app_mobile/src/features/exams/application/exam_service.dart';
-import 'package:saude_app_mobile/src/features/exams/domain/exam_model.dart';
-import 'package:saude_app_mobile/src/features/exams/presentation/providers/exam_providers.dart';
+import 'package:saude_app/src/features/exams/application/exam_service.dart';
+import 'package:saude_app/src/features/exams/domain/exam_model.dart';
+import 'package:saude_app/src/features/exams/presentation/providers/exam_providers.dart';
 
 class LabExamUIData {
   String biomarkerName;

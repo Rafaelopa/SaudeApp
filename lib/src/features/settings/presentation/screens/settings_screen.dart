@@ -1,13 +1,13 @@
 import "package:flutter/material.dart";
 import "package:flutter_riverpod/flutter_riverpod.dart";
-import "package:saude_app_mobile/src/features/authentication/application/auth_service.dart"; 
-import "package:saude_app_mobile/src/features/authentication/presentation/screens/login_screen.dart"; 
-import "package:saude_app_mobile/src/features/settings/presentation/screens/edit_profile_screen.dart";
-import "package:saude_app_mobile/src/features/settings/presentation/screens/change_password_screen.dart";
-import "package:saude_app_mobile/src/features/settings/presentation/screens/notification_settings_screen.dart";
-import "package:saude_app_mobile/src/features/settings/presentation/screens/about_app_screen.dart";
-import "package:saude_app_mobile/src/features/settings/presentation/screens/delete_account_screen.dart";
-import "package:saude_app_mobile/src/features/settings/presentation/screens/subscription_details_screen.dart";
+import "package:saude_app/src/features/authentication/application/auth_service.dart"; 
+import "package:saude_app/src/features/authentication/presentation/screens/login_screen.dart"; 
+import "package:saude_app/src/features/settings/presentation/screens/edit_profile_screen.dart";
+import "package:saude_app/src/features/settings/presentation/screens/change_password_screen.dart";
+import "package:saude_app/src/features/settings/presentation/screens/notification_settings_screen.dart";
+import "package:saude_app/src/features/settings/presentation/screens/about_app_screen.dart";
+import "package:saude_app/src/features/settings/presentation/screens/delete_account_screen.dart";
+import "package:saude_app/src/features/settings/presentation/screens/subscription_details_screen.dart";
 
 // TODO: Definir provedor para AuthService se não existir globalmente
 // Exemplo: final authServiceProvider = Provider<AuthService>((ref) => AuthService(FirebaseAuth.instance));

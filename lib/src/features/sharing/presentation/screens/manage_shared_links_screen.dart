@@ -2,9 +2,9 @@ import "package:flutter/material.dart";
 import "package:flutter/services.dart";
 import "package:flutter_riverpod/flutter_riverpod.dart";
 import "package:intl/intl.dart";
-import "package:saude_app_mobile/src/features/sharing/application/sharing_service.dart";
-import "package:saude_app_mobile/src/features/sharing/domain/sharing_model.dart";
-import "package:saude_app_mobile/src/features/sharing/presentation/providers/sharing_providers.dart";
+import "package:saude_app/src/features/sharing/application/sharing_service.dart";
+import "package:saude_app/src/features/sharing/domain/sharing_model.dart";
+import "package:saude_app/src/features/sharing/presentation/providers/sharing_providers.dart";
 
 class ManageSharedLinksScreen extends ConsumerWidget {
   const ManageSharedLinksScreen({Key? key}) : super(key: key);

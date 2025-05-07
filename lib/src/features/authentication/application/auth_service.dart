@@ -22,5 +22,10 @@ class AuthService {
   Future<void> signOut() {
     return _authRepository.signOut();
   }
+
+  Future<void> sendPasswordResetEmail(String email) { // Added this method
+    // Add any business logic, validation, or logging here
+    return _authRepository.sendPasswordResetEmail(email);
+  }
 }
 

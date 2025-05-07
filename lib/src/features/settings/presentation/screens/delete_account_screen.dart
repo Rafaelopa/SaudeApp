@@ -1,7 +1,7 @@
 import "package:flutter/material.dart";
 import "package:flutter_riverpod/flutter_riverpod.dart";
-// import "package:saude_app_mobile/src/features/authentication/application/auth_service.dart"; // Para o serviço de exclusão
-// import "package:saude_app_mobile/src/features/authentication/presentation/screens/login_screen.dart"; // Para navegar após exclusão
+// import "package:saude_app/src/features/authentication/application/auth_service.dart"; // Para o serviço de exclusão
+// import "package:saude_app/src/features/authentication/presentation/screens/login_screen.dart"; // Para navegar após exclusão
 
 // TODO: Definir provedor para AuthService
 

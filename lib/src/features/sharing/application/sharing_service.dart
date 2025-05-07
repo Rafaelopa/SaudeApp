@@ -1,9 +1,9 @@
 import "dart:math";
 import "package:cloud_firestore/cloud_firestore.dart";
 import "package:firebase_auth/firebase_auth.dart";
-import "package:saude_app_mobile/src/features/sharing/domain/sharing_model.dart";
-import "package:saude_app_mobile/src/features/sharing/infrastructure/sharing_repository.dart";
-import "package:saude_app_mobile/src/features/sharing/presentation/screens/configure_share_link_screen.dart"; // Para o enum ShareDuration
+import "package:saude_app/src/features/sharing/domain/sharing_model.dart";
+import "package:saude_app/src/features/sharing/infrastructure/sharing_repository.dart";
+import "package:saude_app/src/features/sharing/presentation/screens/configure_share_link_screen.dart"; // Para o enum ShareDuration
 
 // Idealmente, a URL base da sua função/página web de visualização
 const String _baseShareUrl = "https://SUA_FUNCAO_CLOUD_OU_DOMINIO_WEB/viewShare";

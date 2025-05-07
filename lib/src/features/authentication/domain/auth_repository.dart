@@ -12,5 +12,6 @@ abstract class AuthRepository {
   Future<User?> createUserWithEmailAndPassword(String email, String password);
   Future<void> signOut();
   Stream<User?> get authStateChanges;
+  Future<void> sendPasswordResetEmail(String email); // Added this line
 }
 
