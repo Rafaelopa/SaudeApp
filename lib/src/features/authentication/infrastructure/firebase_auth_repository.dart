@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart' as fb_auth;
 import 'package:saude_app/src/features/authentication/domain/auth_repository.dart';
+import 'package:saude_app/src/features/authentication/domain/user_model.dart'; // Garanta que este é o User do seu domínio
 
 class FirebaseAuthRepository implements AuthRepository {
   final fb_auth.FirebaseAuth _firebaseAuth;
@@ -11,12 +12,14 @@ class FirebaseAuthRepository implements AuthRepository {
     try {
       final userCredential = await _firebaseAuth.signInWithEmailAndPassword(email: email, password: password);
       if (userCredential.user != null) {
+        // Mapeia do fb_auth.User para o seu User do domínio
         return User(uid: userCredential.user!.uid, email: userCredential.user!.email);
       }
       return null;
     } catch (e) {
+      // Considere um tratamento de erro mais robusto ou logging
       print('Error signing in: $e');
-      rethrow;
+      rethrow; // Ou retorne um erro específico do seu domínio
     }
   }
 
@@ -25,6 +28,7 @@ class FirebaseAuthRepository implements AuthRepository {
     try {
       final userCredential = await _firebaseAuth.createUserWithEmailAndPassword(email: email, password: password);
       if (userCredential.user != null) {
+        // Mapeia do fb_auth.User para o seu User do domínio
         return User(uid: userCredential.user!.uid, email: userCredential.user!.email);
       }
       return null;
@@ -48,6 +52,7 @@ class FirebaseAuthRepository implements AuthRepository {
   Stream<User?> get authStateChanges {
     return _firebaseAuth.authStateChanges().map((firebaseUser) {
       if (firebaseUser == null) return null;
+      // Mapeia do fb_auth.User para o seu User do domínio
       return User(uid: firebaseUser.uid, email: firebaseUser.email);
     });
   }
@@ -61,5 +66,15 @@ class FirebaseAuthRepository implements AuthRepository {
       rethrow;
     }
   }
+
+  // Se você decidir adicionar currentUser à interface AuthRepository:
+  /*
+  @override
+  User? get currentUser {
+    final fbUser = _firebaseAuth.currentUser;
+    if (fbUser == null) return null;
+    return User(uid: fbUser.uid, email: fbUser.email);
+  }
+  */
 }
 

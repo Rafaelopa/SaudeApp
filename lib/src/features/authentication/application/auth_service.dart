@@ -1,15 +1,16 @@
-import 'package:firebase_auth/firebase_auth.dart' as fb_auth;
-
 import 'package:saude_app/src/features/authentication/domain/auth_repository.dart';
+import 'package:saude_app/src/features/authentication/domain/user_model.dart'; // Importa o User do domínio
 
 class AuthService {
   final AuthRepository _authRepository;
 
   AuthService(this._authRepository);
 
-  Stream<fb_auth.User?> get authStateChanges => _authRepository.authStateChanges;
+  // Agora retorna Stream<User?> do domínio, conforme AuthRepository
+  Stream<User?> get authStateChanges => _authRepository.authStateChanges;
 
-  Future<fb_auth.User?> signInWithEmailAndPassword(String email, String password) {
+  // Agora retorna Future<User?> do domínio
+  Future<User?> signInWithEmailAndPassword(String email, String password) {
     return _authRepository.signInWithEmailAndPassword(email, password);
   }
 
@@ -21,9 +22,15 @@ class AuthService {
     return _authRepository.sendPasswordResetEmail(email);
   }
 
-  Future<fb_auth.User?> createUserWithEmailAndPassword(String email, String password) {
+  // Agora retorna Future<User?> do domínio
+  Future<User?> createUserWithEmailAndPassword(String email, String password) {
     return _authRepository.createUserWithEmailAndPassword(email, password);
   }
 
-  fb_auth.User? get currentUser => _authRepository.currentUser;
+  // Se for necessário obter o usuário atual de forma síncrona, 
+  // adicione `User? get currentUser;` à interface AuthRepository 
+  // e implemente em FirebaseAuthRepository.
+  // Exemplo: 
+  // User? get currentUser => _authRepository.currentUser; 
 }
+
