@@ -3,7 +3,8 @@
 import "package:flutter/material.dart";
 import "package:flutter_riverpod/flutter_riverpod.dart";
 import "package:saude_app/src/features/authentication/presentation/screens/registration_screen.dart";
-import "package:saude_app/src/features/authentication/presentation/widgets/auth_gate.dart"; // For authServiceProvider
+// import "package:saude_app/src/features/authentication/presentation/widgets/auth_gate.dart"; // Commented out - authServiceProvider should come from auth_providers
+import "package:saude_app/src/features/authentication/application/auth_providers.dart"; // Added direct import for authServiceProvider
 import "package:saude_app/src/features/authentication/presentation/screens/forgot_password_screen.dart"; // Import ForgotPasswordScreen
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -29,7 +30,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         _isLoading = true;
       });
       try {
-        final authService = ref.read(authServiceProvider);
+        final authService = ref.read(authServiceProvider); // This should now work
         await authService.signInWithEmailAndPassword(
           _emailController.text.trim(),
           _passwordController.text.trim(),

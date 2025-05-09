@@ -1,4 +1,4 @@
-// Application layer for authentication (e.g., AuthService)
+import 'package:firebase_auth/firebase_auth.dart' as fb_auth;
 
 import 'package:saude_app/src/features/authentication/domain/auth_repository.dart';
 
@@ -7,25 +7,23 @@ class AuthService {
 
   AuthService(this._authRepository);
 
-  Stream<User?> get authStateChanges => _authRepository.authStateChanges;
+  Stream<fb_auth.User?> get authStateChanges => _authRepository.authStateChanges;
 
-  Future<User?> signInWithEmailAndPassword(String email, String password) {
-    // Add any business logic, validation, or logging here before calling the repository
+  Future<fb_auth.User?> signInWithEmailAndPassword(String email, String password) {
     return _authRepository.signInWithEmailAndPassword(email, password);
-  }
-
-  Future<User?> createUserWithEmailAndPassword(String email, String password) {
-    // Add any business logic, validation, or logging here
-    return _authRepository.createUserWithEmailAndPassword(email, password);
   }
 
   Future<void> signOut() {
     return _authRepository.signOut();
   }
 
-  Future<void> sendPasswordResetEmail(String email) { // Added this method
-    // Add any business logic, validation, or logging here
+  Future<void> sendPasswordResetEmail(String email) {
     return _authRepository.sendPasswordResetEmail(email);
   }
-}
 
+  Future<fb_auth.User?> createUserWithEmailAndPassword(String email, String password) {
+    return _authRepository.createUserWithEmailAndPassword(email, password);
+  }
+
+  fb_auth.User? get currentUser => _authRepository.currentUser;
+}
