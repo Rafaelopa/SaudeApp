@@ -1,17 +1,15 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb_auth;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:saude_app/src/features/authentication/domain/auth_repository.dart';
-import 'package:saude_app/src/features/authentication/infrastructure/firebase_auth_repository.dart';
-import 'package:saude_app/src/features/authentication/application/auth_service.dart';
 
 // Provider for FirebaseAuth instance
-final firebaseAuthInstanceProvider = Provider<fb_auth.FirebaseAuth>((ref) {
+final firebaseAuthProvider = Provider<fb_auth.FirebaseAuth>((ref) {
   return fb_auth.FirebaseAuth.instance;
 });
 
 // Provider for AuthRepository
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
-  final firebaseAuth = ref.watch(firebaseAuthInstanceProvider);
+  final firebaseAuth = ref.watch(firebaseAuthProvider);
   return FirebaseAuthRepository(firebaseAuth);
 });
 
@@ -21,9 +19,9 @@ final authServiceProvider = Provider<AuthService>((ref) {
   return AuthService(authRepository);
 });
 
-// Provider for authStateChanges stream
-final authStateChangesProvider = StreamProvider<User?>((ref) {
+// Provider for authStateChanges
+final authStateChangesProvider = StreamProvider<fb_auth.User?>((ref) {
   final authService = ref.watch(authServiceProvider);
-  return authService.authStateChanges;
+  return authService.authStateChanges();
 });
 
