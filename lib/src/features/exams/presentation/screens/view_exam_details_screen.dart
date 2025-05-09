@@ -4,7 +4,6 @@ import 'package:intl/intl.dart';
 import 'package:saude_app/src/features/exams/domain/exam_model.dart';
 import 'package:saude_app/src/features/exams/presentation/screens/add_lab_exam_screen.dart'; 
 import 'package:saude_app/src/features/exams/presentation/screens/add_image_exam_screen.dart'; 
-import 'package:saude_app/src/features/exams/application/exam_service.dart'; 
 import 'package:saude_app/src/features/exams/presentation/providers/exam_providers.dart'; 
 import 'package:url_launcher/url_launcher.dart';
 

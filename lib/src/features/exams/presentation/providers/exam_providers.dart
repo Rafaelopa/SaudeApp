@@ -1,5 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:saude_app/src/features/exams/application/exam_service.dart';
 import 'package:saude_app/src/features/exams/infrastructure/exam_repository.dart';
 
 // Provedor para ExamRepository

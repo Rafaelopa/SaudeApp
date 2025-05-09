@@ -26,12 +26,11 @@ class ExamService {
     String? clinicName,
     String? notes,
     required List<LabResultItem> labResults,
-    File? attachmentFile, // Laudo original
+    File? attachmentFile,
   }) async {
     final userId = await _getCurrentUserId();
     String? labAttachmentUrl;
     String? labAttachmentPath;
-
     final examId = _examRepository._firestore.collection("exams").doc().id;
 
     if (attachmentFile != null) {
@@ -56,7 +55,6 @@ class ExamService {
       labAttachmentUrl: labAttachmentUrl,
       labAttachmentPath: labAttachmentPath,
     );
-
     await _examRepository.addExam(exam);
     return exam;
   }
@@ -100,7 +98,6 @@ class ExamService {
       updatedAt: Timestamp.now(),
       imageFiles: uploadedImageFiles,
     );
-
     await _examRepository.addExam(exam);
     return exam;
   }
@@ -115,29 +112,25 @@ class ExamService {
     String? notes,
     required List<LabResultItem> labResults,
     File? newAttachmentFile,
-    String? existingAttachmentPath, // Para deletar o antigo se um novo for enviado
-    String? existingAttachmentUrl,  // Para manter se não houver novo
+    String? existingAttachmentPath,
+    String? existingAttachmentUrl,
   }) async {
     final userId = await _getCurrentUserId();
     String? finalAttachmentUrl = existingAttachmentUrl;
     String? finalAttachmentPath = existingAttachmentPath;
 
     if (newAttachmentFile != null) {
-      // Se existe um anexo antigo, deleta
       if (existingAttachmentPath != null && existingAttachmentPath.isNotEmpty) {
         await _examRepository.deleteFile(existingAttachmentPath);
       }
-      // Faz upload do novo anexo
       final fileName = 'laudo_${DateTime.now().millisecondsSinceEpoch}.${newAttachmentFile.path.split(".").last}';
       finalAttachmentPath = 'users/$userId/patients/$patientProfileId/exams/$examIdToUpdate/lab_attachments/$fileName';
       finalAttachmentUrl = await _examRepository.uploadFile(newAttachmentFile, finalAttachmentPath);
     } else if (existingAttachmentPath != null && newAttachmentFile == null && finalAttachmentUrl == null) {
-        // Caso o usuário tenha removido o anexo existente e não adicionado um novo
         await _examRepository.deleteFile(existingAttachmentPath);
         finalAttachmentPath = null;
         finalAttachmentUrl = null;
     }
-
 
     final exam = ExamModel(
       examId: examIdToUpdate,
@@ -149,7 +142,7 @@ class ExamService {
       examDate: Timestamp.fromDate(examDate),
       clinicName: clinicName,
       notes: notes,
-      createdAt: Timestamp.now(), // Ou buscar o original se necessário manter
+      createdAt: Timestamp.now(), 
       updatedAt: Timestamp.now(),
       labResults: labResults,
       labAttachmentUrl: finalAttachmentUrl,
@@ -166,13 +159,13 @@ class ExamService {
     required DateTime examDate,
     String? clinicName,
     String? notes,
-    required List<File> newImageFilesToUpload, // Novos arquivos para upload
-    required List<ImageFileAttachment> existingImageFiles, // Arquivos existentes para comparar e deletar os que foram removidos
+    required List<File> newImageFilesToUpload,
+    required List<ImageFileAttachment> originalAttachmentsInExam, 
+    required List<ImageFileAttachment> currentAttachmentsFromUI,
   }) async {
     final userId = await _getCurrentUserId();
     List<ImageFileAttachment> finalImageFiles = [];
 
-    // 1. Fazer upload de novos arquivos
     for (File newFile in newImageFilesToUpload) {
       final fileName = '${DateTime.now().millisecondsSinceEpoch}_${newFile.path.split("/").last}';
       final filePath = 'users/$userId/patients/$patientProfileId/exams/$examIdToUpdate/image_attachments/$fileName';
@@ -185,35 +178,20 @@ class ExamService {
       ));
     }
 
-    // 2. Identificar e manter arquivos existentes que não foram removidos (comparando com a lista de `newImageFilesToUpload` se ela representar o estado final desejado)
-    // Esta lógica assume que `newImageFilesToUpload` contém APENAS os NOVOS arquivos.
-    // Se `newImageFilesToUpload` representa o estado final de arquivos, a lógica de deleção precisa ser mais complexa.
-    // Para MVP, vamos assumir que a UI envia os arquivos que devem permanecer + os novos.
-    // Uma lógica mais robusta seria: a UI envia a lista final de XFiles. Comparamos com `existingImageFiles`.
-    // Aqueles em `existingImageFiles` que não estão na lista final (comparando por nome ou path se possível) são deletados do Storage.
-    // Aqueles na lista final que não estão em `existingImageFiles` são novos e precisam de upload.
-    // Aqueles que estão em ambos são mantidos.
-
-    // Simplificação para MVP: A UI deve gerenciar quais arquivos são novos e quais são mantidos.
-    // Se a UI envia uma lista de `ImageFileAttachment` que representa o estado final, então:
-    // finalImageFiles.addAll(existingImageFiles.where((ef) => newImageFilesToUpload.any((nf) => nf.path.split('/').last == ef.fileName)));
-
-    // Para este exemplo, vamos assumir que `newImageFilesToUpload` são apenas os *novos* e a UI já tratou os existentes.
-    // Se a UI envia a lista completa de arquivos que devem estar no exame (novos e antigos que não foram removidos),
-    // então a lógica de deleção dos arquivos que foram removidos da UI precisa ser feita aqui.
-    List<String> newFileNames = newImageFilesToUpload.map((f) => f.path.split('/').last).toList();
-    for (var existingFile in existingImageFiles) {
-        bool stillExistsInUI = newImageFilesToUpload.any((newFile) => newFile.path.split('/').last == existingFile.fileName && File(newFile.path).existsSync()); // Checa se o arquivo ainda está na lista da UI
-        // Esta comparação é falha se a UI só manda os *novos* files. 
-        // A UI deveria mandar o estado final dos arquivos.
-        // Por ora, vamos adicionar todos os existing files que não foram explicitamente substituídos (lógica complexa)
-        // Para MVP, a edição de arquivos de imagem pode ser: deletar todos os antigos e adicionar os novos.
+    List<String> currentAttachmentsPathsFromUI = currentAttachmentsFromUI.map((att) => att.filePath).toList();
+    for (var originalAttachment in originalAttachmentsInExam) {
+      if (!currentAttachmentsPathsFromUI.contains(originalAttachment.filePath)) {
+        await _examRepository.deleteFile(originalAttachment.filePath);
+      }
     }
-    // Simplificação radical para MVP de edição de imagem: deletar todos os antigos e adicionar os novos.
-    for (var oldFile in existingImageFiles) {
-        await _examRepository.deleteFile(oldFile.filePath);
+    
+    finalImageFiles.addAll(currentAttachmentsFromUI);
+    
+    final uniqueFinalImageFiles = <String, ImageFileAttachment>{};
+    for (var attachment in finalImageFiles) {
+      uniqueFinalImageFiles[attachment.filePath] = attachment;
     }
-    // `finalImageFiles` já contém os novos uploads. Se não houver novos, ficará vazia.
+    finalImageFiles = uniqueFinalImageFiles.values.toList();
 
     final exam = ExamModel(
       examId: examIdToUpdate,
@@ -225,18 +203,15 @@ class ExamService {
       examDate: Timestamp.fromDate(examDate),
       clinicName: clinicName,
       notes: notes,
-      createdAt: Timestamp.now(), // Ou buscar o original
+      createdAt: Timestamp.now(), 
       updatedAt: Timestamp.now(),
-      imageFiles: finalImageFiles, // Contém apenas os novos arquivos após a deleção dos antigos
+      imageFiles: finalImageFiles,
     );
     await _examRepository.updateExam(exam);
   }
 
-
   Future<void> deleteExam(String examId, String examType, List<ImageFileAttachment>? imageFiles, String? labAttachmentPath) async {
-    await _getCurrentUserId(); // Garante que o usuário está logado
-
-    // Deletar arquivos associados do Storage
+    await _getCurrentUserId();
     if (examType == 'image' && imageFiles != null) {
       for (var fileAttachment in imageFiles) {
         if (fileAttachment.filePath.isNotEmpty) {
@@ -246,8 +221,6 @@ class ExamService {
     } else if (examType == 'laboratory' && labAttachmentPath != null && labAttachmentPath.isNotEmpty) {
       await _examRepository.deleteFile(labAttachmentPath);
     }
-
-    // Deletar o registro do exame no Firestore
     await _examRepository.deleteExam(examId);
   }
 }

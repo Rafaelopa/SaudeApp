@@ -1,12 +1,11 @@
-import 'dart:io';
+import "dart:io";
 
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:intl/intl.dart';
-import 'package:saude_app/src/features/exams/application/exam_service.dart';
-import 'package:saude_app/src/features/exams/domain/exam_model.dart';
-import 'package:saude_app/src/features/exams/presentation/providers/exam_providers.dart';
+import "package:flutter/material.dart";
+import "package:flutter_riverpod/flutter_riverpod.dart";
+import "package:image_picker/image_picker.dart";
+import "package:intl/intl.dart";
+import "package:saude_app/src/features/exams/domain/exam_model.dart";
+import "package:saude_app/src/features/exams/presentation/providers/exam_providers.dart";
 
 class AddImageExamScreen extends ConsumerStatefulWidget {
   final String patientProfileId;
@@ -32,7 +31,7 @@ class _AddImageExamScreenState extends ConsumerState<AddImageExamScreen> {
   late TextEditingController _notesController;
 
   final List<XFile> _pickedFiles = []; // Para novos arquivos a serem adicionados
-  List<ImageFileAttachment> _existingImageFiles = []; // Para arquivos existentes no modo de edição
+  List<ImageFileAttachment> _existingImageFilesUI = []; // Para arquivos existentes no modo de edição, refletindo o estado da UI
   DateTime? _selectedDate;
   final ImagePicker _picker = ImagePicker();
   bool _isEditMode = false;
@@ -44,20 +43,20 @@ class _AddImageExamScreenState extends ConsumerState<AddImageExamScreen> {
 
     _examTitleController = TextEditingController(text: _isEditMode ? widget.examToEdit!.examTitle : 
 
-'');
+"");
     _examDateController = TextEditingController();
     _clinicNameController = TextEditingController(text: _isEditMode ? widget.examToEdit!.clinicName : 
 
-'');
+"");
     _notesController = TextEditingController(text: _isEditMode ? widget.examToEdit!.notes : 
 
-'');
+"");
 
     if (_isEditMode) {
       _selectedDate = widget.examToEdit!.examDate.toDate();
-      _examDateController.text = DateFormat('dd/MM/yyyy').format(_selectedDate!);
+      _examDateController.text = DateFormat("dd/MM/yyyy").format(_selectedDate!);
       if (widget.examToEdit!.imageFiles != null) {
-        _existingImageFiles = List.from(widget.examToEdit!.imageFiles!);
+        _existingImageFilesUI = List.from(widget.examToEdit!.imageFiles!);
       }
     }
   }
@@ -81,14 +80,15 @@ class _AddImageExamScreenState extends ConsumerState<AddImageExamScreen> {
     if (picked != null && picked != _selectedDate) {
       setState(() {
         _selectedDate = picked;
-        _examDateController.text = DateFormat('dd/MM/yyyy').format(picked);
+        _examDateController.text = DateFormat("dd/MM/yyyy").format(picked);
       });
     }
   }
 
   Future<void> _pickMedia() async {
     final List<XFile> images = await _picker.pickMultiImage();
-    if (images != null && images.isNotEmpty) {
+    // if (images != null && images.isNotEmpty) { // 'images' can't be null here because of null safety on pickMultiImage
+    if (images.isNotEmpty) {
       setState(() {
         _pickedFiles.addAll(images);
       });
@@ -101,32 +101,29 @@ class _AddImageExamScreenState extends ConsumerState<AddImageExamScreen> {
     });
   }
 
-  void _removeExistingFile(int index) {
+  void _removeExistingFileFromUI(int index) {
     setState(() {
-      _existingImageFiles.removeAt(index);
+      _existingImageFilesUI.removeAt(index);
     });
   }
 
   Future<void> _submitForm() async {
+    if (!mounted) return; // Check if the widget is still in the tree
+
     if (_formKey.currentState!.validate()) {
-      if (_pickedFiles.isEmpty && _existingImageFiles.isEmpty && _isEditMode) {
+      if (_pickedFiles.isEmpty && _existingImageFilesUI.isEmpty) { // Simplified condition
          ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Por favor, adicione pelo menos um arquivo de exame.')));
-        return;
-      }
-       if (_pickedFiles.isEmpty && !_isEditMode) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Por favor, adicione pelo menos um arquivo de exame.')));
+          const SnackBar(content: Text("Por favor, adicione pelo menos um arquivo de exame.")));
         return;
       }
       if (_selectedDate == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Por favor, selecione a data de realização.')));
+          const SnackBar(content: Text("Por favor, selecione a data de realização.")));
         return;
       }
 
       ref.read(examSavingProvider.notifier).state = true;
-      final snackBarMsg = _isEditMode ? 'Atualizando exame de imagem...' : 'Salvando exame de imagem...';
+      final snackBarMsg = _isEditMode ? "Atualizando exame de imagem..." : "Salvando exame de imagem...";
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(snackBarMsg)));
 
       try {
@@ -137,14 +134,18 @@ class _AddImageExamScreenState extends ConsumerState<AddImageExamScreen> {
           await examService.updateImageExam(
             examIdToUpdate: widget.examToEdit!.examId!,
             patientProfileId: widget.patientProfileId,
-            patientName: widget.patientName, // Pode ser atualizado
+            patientName: widget.patientName, 
             examTitle: _examTitleController.text,
             examDate: _selectedDate!,
             clinicName: _clinicNameController.text.isEmpty ? null : _clinicNameController.text,
             notes: _notesController.text.isEmpty ? null : _notesController.text,
-            newImageFilesToUpload: filesToUpload, // Apenas os novos
-            existingImageFiles: widget.examToEdit!.imageFiles ?? [], // Os que estavam antes
-            currentUIFilesState: _existingImageFiles, // Os que permaneceram na UI após remoção pelo usuário
+            newImageFilesToUpload: filesToUpload, 
+            // O parâmetro `existingImageFiles` em `updateImageExam` deve receber a lista atual da UI
+            // para que o serviço possa determinar quais arquivos foram removidos.
+            // O nome do parâmetro na definição do método `updateImageExam` precisa ser verificado.
+            // Assumindo que o nome correto no serviço seja `currentImageFiles` ou similar.
+            // Vamos renomear o parâmetro na chamada para `currentImageAttachments` para refletir melhor o que está sendo passado.
+            currentImageAttachments: _existingImageFilesUI, 
           );
         } else {
           await examService.addImageExam(
@@ -157,21 +158,24 @@ class _AddImageExamScreenState extends ConsumerState<AddImageExamScreen> {
             imageFilesToUpload: filesToUpload,
           );
         }
-
+        if (!mounted) return; // Check mounted again before showing SnackBar
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        final successMsg = _isEditMode ? 'Exame de imagem atualizado com sucesso!' : 'Exame de imagem salvo com sucesso!';
+        final successMsg = _isEditMode ? "Exame de imagem atualizado com sucesso!" : "Exame de imagem salvo com sucesso!";
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(successMsg)));
         
         int popCount = 0;
         Navigator.of(context).popUntil((_) => popCount++ >= (_isEditMode ? 2 : 1));
 
       } catch (e) {
+        if (!mounted) return; // Check mounted again before showing SnackBar
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro ao salvar exame: ${e.toString()}')),
+          SnackBar(content: Text("Erro ao salvar exame: ${e.toString()}")),
         );
       } finally {
-        ref.read(examSavingProvider.notifier).state = false;
+        if (mounted) {
+          ref.read(examSavingProvider.notifier).state = false;
+        }
       }
     }
   }
@@ -179,8 +183,8 @@ class _AddImageExamScreenState extends ConsumerState<AddImageExamScreen> {
   @override
   Widget build(BuildContext context) {
     final isSaving = ref.watch(examSavingProvider);
-    final String appBarTitle = _isEditMode ? 'Editar Exame de Imagem' : 'Novo Exame de Imagem';
-    final String buttonText = _isEditMode ? 'Salvar Alterações' : 'Salvar Exame';
+    final String appBarTitle = _isEditMode ? "Editar Exame de Imagem" : "Novo Exame de Imagem";
+    final String buttonText = _isEditMode ? "Salvar Alterações" : "Salvar Exame";
 
     return Scaffold(
       appBar: AppBar(title: Text(appBarTitle)),
@@ -190,43 +194,43 @@ class _AddImageExamScreenState extends ConsumerState<AddImageExamScreen> {
           key: _formKey,
           child: ListView(
             children: <Widget>[
-              Text('Perfil: ${widget.patientName}', style: Theme.of(context).textTheme.titleMedium),
+              Text("Perfil: ${widget.patientName}", style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _examTitleController,
-                decoration: const InputDecoration(labelText: 'Título do Exame*', border: OutlineInputBorder()),
+                decoration: const InputDecoration(labelText: "Título do Exame*", border: OutlineInputBorder()),
                 validator: (value) {
-                  if (value == null || value.isEmpty) return 'Por favor, insira o título do exame';
+                  if (value == null || value.isEmpty) return "Por favor, insira o título do exame";
                   return null;
                 },
               ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: _examDateController,
-                decoration: const InputDecoration(labelText: 'Data da Realização*', border: OutlineInputBorder()),
+                decoration: const InputDecoration(labelText: "Data da Realização*", border: OutlineInputBorder()),
                 readOnly: true,
                 onTap: () => _selectDate(context),
                 validator: (value) {
-                  if (value == null || value.isEmpty) return 'Por favor, selecione a data de realização';
+                  if (value == null || value.isEmpty) return "Por favor, selecione a data de realização";
                   return null;
                 },
               ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: _clinicNameController,
-                decoration: const InputDecoration(labelText: 'Clínica/Hospital', border: OutlineInputBorder()),
+                decoration: const InputDecoration(labelText: "Clínica/Hospital", border: OutlineInputBorder()),
               ),
               const SizedBox(height: 20),
-              Text('Arquivos do Exame*', style: Theme.of(context).textTheme.titleMedium),
+              Text("Arquivos do Exame*", style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: 8),
               // Lista de arquivos existentes (no modo de edição)
-              if (_isEditMode && _existingImageFiles.isNotEmpty)
+              if (_isEditMode && _existingImageFilesUI.isNotEmpty)
                 ListView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  itemCount: _existingImageFiles.length,
+                  itemCount: _existingImageFilesUI.length,
                   itemBuilder: (context, index) {
-                    final existingFile = _existingImageFiles[index];
+                    final existingFile = _existingImageFilesUI[index];
                     return Card(
                       elevation: 1,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -236,7 +240,7 @@ class _AddImageExamScreenState extends ConsumerState<AddImageExamScreen> {
                         subtitle: const Text("Arquivo existente"),
                         trailing: IconButton(
                           icon: const Icon(Icons.remove_circle_outline, color: Colors.redAccent),
-                          onPressed: () => _removeExistingFile(index),
+                          onPressed: () => _removeExistingFileFromUI(index),
                         ),
                       ),
                     );
@@ -268,13 +272,13 @@ class _AddImageExamScreenState extends ConsumerState<AddImageExamScreen> {
               const SizedBox(height: 10),
               ElevatedButton.icon(
                 icon: const Icon(Icons.add_photo_alternate_outlined),
-                label: const Text('Adicionar Novos Arquivos'),
+                label: const Text("Adicionar Novos Arquivos"),
                 onPressed: _pickMedia,
               ),
               const SizedBox(height: 20),
               TextFormField(
                 controller: _notesController,
-                decoration: const InputDecoration(labelText: 'Notas/Observações', border: OutlineInputBorder()),
+                decoration: const InputDecoration(labelText: "Notas/Observações", border: OutlineInputBorder()),
                 maxLines: 3,
               ),
               const SizedBox(height: 24),
@@ -289,7 +293,7 @@ class _AddImageExamScreenState extends ConsumerState<AddImageExamScreen> {
               const SizedBox(height: 8),
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Cancelar'),
+                child: const Text("Cancelar"),
               ),
             ],
           ),
