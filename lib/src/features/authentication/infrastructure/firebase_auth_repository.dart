@@ -1,17 +1,19 @@
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart' as fb_auth;
 import 'package:saude_app/src/features/authentication/domain/auth_repository.dart';
 
 class FirebaseAuthRepository implements AuthRepository {
-  final FirebaseAuth _firebaseAuth;
+  final fb_auth.FirebaseAuth _firebaseAuth;
 
   FirebaseAuthRepository(this._firebaseAuth);
 
   @override
   Future<User?> signInWithEmailAndPassword(String email, String password) async {
-    // TODO: Implement signInWithEmailAndPassword
     try {
       final userCredential = await _firebaseAuth.signInWithEmailAndPassword(email: email, password: password);
-      return User(uid: userCredential.user!.uid, email: userCredential.user!.email);
+      if (userCredential.user != null) {
+        return User(uid: userCredential.user!.uid, email: userCredential.user!.email);
+      }
+      return null;
     } catch (e) {
       print('Error signing in: $e');
       rethrow;
@@ -20,10 +22,12 @@ class FirebaseAuthRepository implements AuthRepository {
 
   @override
   Future<User?> createUserWithEmailAndPassword(String email, String password) async {
-    // TODO: Implement createUserWithEmailAndPassword
     try {
       final userCredential = await _firebaseAuth.createUserWithEmailAndPassword(email: email, password: password);
-      return User(uid: userCredential.user!.uid, email: userCredential.user!.email);
+      if (userCredential.user != null) {
+        return User(uid: userCredential.user!.uid, email: userCredential.user!.email);
+      }
+      return null;
     } catch (e) {
       print('Error creating user: $e');
       rethrow;
@@ -32,7 +36,6 @@ class FirebaseAuthRepository implements AuthRepository {
 
   @override
   Future<void> signOut() async {
-    // TODO: Implement signOut
     try {
       await _firebaseAuth.signOut();
     } catch (e) {
@@ -43,7 +46,6 @@ class FirebaseAuthRepository implements AuthRepository {
 
   @override
   Stream<User?> get authStateChanges {
-    // TODO: Implement authStateChanges
     return _firebaseAuth.authStateChanges().map((firebaseUser) {
       if (firebaseUser == null) return null;
       return User(uid: firebaseUser.uid, email: firebaseUser.email);
@@ -55,9 +57,8 @@ class FirebaseAuthRepository implements AuthRepository {
     try {
       await _firebaseAuth.sendPasswordResetEmail(email: email);
     } catch (e) {
-      // Handle error, e.g., throw a custom exception or log the error
       print('Error sending password reset email: $e');
-      rethrow; // Or handle it more gracefully depending on your app's needs
+      rethrow;
     }
   }
 }
