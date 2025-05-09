@@ -71,28 +71,41 @@ class SharedLinkModel {
 
   factory SharedLinkModel.fromDocument(DocumentSnapshot doc) {
     Map<String, dynamic> data = doc.data()! as Map<String, dynamic>;
+    
+    // Helper to safely get Timestamp or provide a default
+    Timestamp _getTimestamp(dynamic value, {Timestamp? defaultValue}) {
+      if (value is Timestamp) {
+        return value;
+      }
+      return defaultValue ?? Timestamp.now(); // Default to now if null or unparseable
+    }
+
     return SharedLinkModel(
       id: doc.id,
-      userId: data["userId"],
-      patientProfileId: data["patientProfileId"],
-      patientName: data["patientName"] ?? 
-
-""; // Adicionar fallback
-      sharedItemType: SharedItemType.values.firstWhere((e) => e.name == data["sharedItemType"], orElse: () => SharedItemType.singleExam), // Adicionar fallback
+      userId: data["userId"] ?? "", // Fallback for required String
+      patientProfileId: data["patientProfileId"] ?? "", // Fallback for required String
+      patientName: data["patientName"] ?? "", // Corrected fallback
+      sharedItemType: SharedItemType.values.firstWhere(
+        (e) => e.name == data["sharedItemType"],
+        orElse: () => SharedItemType.singleExam // Default if not found or null
+      ),
       sharedExamIds: List<String>.from(data["sharedExamIds"] ?? []),
       accessPasswordHash: data["accessPasswordHash"],
-      expiresAt: data["expiresAt"],
-      accessType: data["accessType"] != null ? ShareAccessType.values.firstWhere((e) => e.name == data["accessType"]) : null,
+      expiresAt: _getTimestamp(data["expiresAt"]), // Fallback for required Timestamp
+      accessType: data["accessType"] != null
+          ? ShareAccessType.values.firstWhere((e) => e.name == data["accessType"], orElse: () => ShareAccessType.timeLimited) // Added orElse for safety
+          : null,
       permissions: Map<String, bool>.from(data["permissions"] ?? {}),
-      status: ShareLinkStatus.values.firstWhere((e) => e.name == data["status"], orElse: () => ShareLinkStatus.expired), // Adicionar fallback
-      createdAt: data["createdAt"],
-      updatedAt: data["updatedAt"],
-      shareToken: data["shareToken"],
+      status: ShareLinkStatus.values.firstWhere(
+        (e) => e.name == data["status"],
+        orElse: () => ShareLinkStatus.expired // Default if not found or null
+      ),
+      createdAt: _getTimestamp(data["createdAt"]), // Fallback for required Timestamp
+      updatedAt: _getTimestamp(data["updatedAt"]), // Fallback for required Timestamp
+      shareToken: data["shareToken"] ?? "", // Fallback for required String
       accessCount: data["accessCount"],
-      lastAccessedAt: data["lastAccessedAt"],
-      shareUrl: data["shareUrl"] ?? 
-
-"", // Adicionar fallback
+      lastAccessedAt: data["lastAccessedAt"] is Timestamp ? data["lastAccessedAt"] : null, // Ensure it's a Timestamp or null
+      shareUrl: data["shareUrl"] ?? "", // Corrected fallback
     );
   }
 }
