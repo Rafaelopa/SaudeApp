@@ -1,0 +1,185 @@
+diff --git a/lib/src/features/authentication/application/auth_providers.dart b/lib/src/features/authentication/application/auth_providers.dart
+new file mode 100644
+index 0000000..2f506ef
+--- /dev/null
++++ b/lib/src/features/authentication/application/auth_providers.dart
+@@ -0,0 +1,21 @@
++import 'package:firebase_auth/firebase_auth.dart';
++import 'package:flutter_riverpod/flutter_riverpod.dart';
++import 'package:saude_app/src/features/authentication/domain/auth_repository.dart';
++import 'package:saude_app/src/features/authentication/infrastructure/firebase_auth_repository.dart';
++import 'auth_service.dart';
++
++// Provider for FirebaseAuth instance
++final firebaseAuthProvider = Provider<FirebaseAuth>((ref) => FirebaseAuth.instance);
++
++// Provider for AuthRepository
++final authRepositoryProvider = Provider<AuthRepository>((ref) {
++  final firebaseAuth = ref.watch(firebaseAuthProvider);
++  return FirebaseAuthRepository(firebaseAuth);
++});
++
++// Provider for AuthService
++final authServiceProvider = Provider<AuthService>((ref) {
++  final authRepository = ref.watch(authRepositoryProvider);
++  return AuthService(authRepository);
++});
++
+diff --git a/lib/src/features/authentication/infrastructure/firebase_auth_repository.dart b/lib/src/features/authentication/infrastructure/firebase_auth_repository.dart
+index 25270cd..c35749a 100644
+--- a/lib/src/features/authentication/infrastructure/firebase_auth_repository.dart
++++ b/lib/src/features/authentication/infrastructure/firebase_auth_repository.dart
+@@ -1,68 +1,63 @@
+-// Infrastructure layer for authentication using Firebase
+-
+-import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
++import 'package:firebase_auth/firebase_auth.dart';
+ import 'package:saude_app/src/features/authentication/domain/auth_repository.dart';
+ 
+ class FirebaseAuthRepository implements AuthRepository {
+-  final firebase_auth.FirebaseAuth _firebaseAuth;
++  final FirebaseAuth _firebaseAuth;
+ 
+-  FirebaseAuthRepository({firebase_auth.FirebaseAuth? firebaseAuth}) 
+-      : _firebaseAuth = firebaseAuth ?? firebase_auth.FirebaseAuth.instance;
++  FirebaseAuthRepository(this._firebaseAuth);
+ 
+   @override
+-  Stream<User?> get authStateChanges {
+-    return _firebaseAuth.authStateChanges().map((firebaseUser) {
+-      if (firebaseUser == null) {
+-        return null;
+-      }
+-      return User(uid: firebaseUser.uid, email: firebaseUser.email);
+-    });
++  Future<User?> signInWithEmailAndPassword(String email, String password) async {
++    // TODO: Implement signInWithEmailAndPassword
++    try {
++      final userCredential = await _firebaseAuth.signInWithEmailAndPassword(email: email, password: password);
++      return User(uid: userCredential.user!.uid, email: userCredential.user!.email);
++    } catch (e) {
++      print('Error signing in: $e');
++      rethrow;
++    }
+   }
+ 
+   @override
+   Future<User?> createUserWithEmailAndPassword(String email, String password) async {
++    // TODO: Implement createUserWithEmailAndPassword
+     try {
+-      final userCredential = await _firebaseAuth.createUserWithEmailAndPassword(
+-        email: email,
+-        password: password,
+-      );
+-      if (userCredential.user != null) {
+-        return User(uid: userCredential.user!.uid, email: userCredential.user!.email);
+-      }
+-      return null;
++      final userCredential = await _firebaseAuth.createUserWithEmailAndPassword(email: email, password: password);
++      return User(uid: userCredential.user!.uid, email: userCredential.user!.email);
+     } catch (e) {
+-      // TODO: Handle specific Firebase exceptions
+-      print(e.toString());
+-      rethrow; // Or a custom exception
++      print('Error creating user: $e');
++      rethrow;
+     }
+   }
+ 
+   @override
+-  Future<User?> signInWithEmailAndPassword(String email, String password) async {
++  Future<void> signOut() async {
++    // TODO: Implement signOut
+     try {
+-      final userCredential = await _firebaseAuth.signInWithEmailAndPassword(
+-        email: email,
+-        password: password,
+-      );
+-      if (userCredential.user != null) {
+-        return User(uid: userCredential.user!.uid, email: userCredential.user!.email);
+-      }
+-      return null;
++      await _firebaseAuth.signOut();
+     } catch (e) {
+-      // TODO: Handle specific Firebase exceptions
+-      print(e.toString());
+-      rethrow; // Or a custom exception
++      print('Error signing out: $e');
++      rethrow;
+     }
+   }
+ 
+   @override
+-  Future<void> signOut() async {
++  Stream<User?> get authStateChanges {
++    // TODO: Implement authStateChanges
++    return _firebaseAuth.authStateChanges().map((firebaseUser) {
++      if (firebaseUser == null) return null;
++      return User(uid: firebaseUser.uid, email: firebaseUser.email);
++    });
++  }
++
++  @override
++  Future<void> sendPasswordResetEmail(String email) async {
+     try {
+-      await _firebaseAuth.signOut();
++      await _firebaseAuth.sendPasswordResetEmail(email: email);
+     } catch (e) {
+-      // TODO: Handle specific Firebase exceptions
+-      print(e.toString());
+-      rethrow; // Or a custom exception
++      // Handle error, e.g., throw a custom exception or log the error
++      print('Error sending password reset email: $e');
++      rethrow; // Or handle it more gracefully depending on your app's needs
+     }
+   }
+ }
+diff --git a/lib/src/features/home/presentation/screens/home_screen.dart b/lib/src/features/home/presentation/screens/home_screen.dart
+index 349d475..b307588 100644
+--- a/lib/src/features/home/presentation/screens/home_screen.dart
++++ b/lib/src/features/home/presentation/screens/home_screen.dart
+@@ -1,9 +1,6 @@
+-// lib/src/features/home/presentation/screens/home_screen.dart
+-
+-import "package:flutter/material.dart";
+-import "package:flutter_riverpod/flutter_riverpod.dart";
+-import "package:saude_app/src/features/authentication/application/auth_service.dart"; 
+-import "package:saude_app/src/features/dependents/presentation/screens/dependents_list_screen.dart";
++import 'package:flutter/material.dart';
++import 'package:flutter_riverpod/flutter_riverpod.dart';
++import 'package:saude_app/src/features/authentication/application/auth_service.dart';
+ 
+ class HomeScreen extends ConsumerWidget {
+   const HomeScreen({super.key});
+@@ -37,7 +34,6 @@ class HomeScreen extends ConsumerWidget {
+               // Could display user's name here if available
+               // Text("Bem-vindo(a), ${user?.displayName ?? user?.email ?? "Usuário"}!", 
+               //   style: Theme.of(context).textTheme.headlineSmall, textAlign: TextAlign.center),
+-              // const SizedBox(height: 32),
+               Text(
+                 "Gerencie o histórico de saúde da sua família em um só lugar.",
+                 style: Theme.of(context).textTheme.titleMedium,
+@@ -52,13 +48,10 @@ class HomeScreen extends ConsumerWidget {
+                   textStyle: const TextStyle(fontSize: 18),
+                 ),
+                 onPressed: () {
+-                  Navigator.of(context).push(
+-                    MaterialPageRoute(builder: (context) => const DependentsListScreen()),
+-                  );
++                  // Navigator.of(context).push(MaterialPageRoute(builder: (context) => const DependentsListScreen()));
+                 },
+               ),
+               const SizedBox(height: 24),
+-              // Placeholder for other features
+               OutlinedButton.icon(
+                 icon: const Icon(Icons.summarize_outlined),
+                 label: const Text("Meus Exames (Em Breve)"),
+@@ -67,7 +60,7 @@ class HomeScreen extends ConsumerWidget {
+                   textStyle: const TextStyle(fontSize: 18),
+                 ),
+                 onPressed: () {
+-                   ScaffoldMessenger.of(context).showSnackBar(
++                  ScaffoldMessenger.of(context).showSnackBar(
+                     const SnackBar(content: Text("Funcionalidade de gerenciamento de exames em desenvolvimento.")),
+                   );
+                 },
